@@ -20,6 +20,12 @@ class Ui_BookWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
+        self.lastButton = QtWidgets.QPushButton(self.centralwidget)
+        self.lastButton.setObjectName("lastButton")
+        self.gridLayout.addWidget(self.lastButton, 1, 0, 1, 1)
+        self.nextButton = QtWidgets.QPushButton(self.centralwidget)
+        self.nextButton.setObjectName("nextButton")
+        self.gridLayout.addWidget(self.nextButton, 1, 1, 1, 1)
         self.label = QtWidgets.QLabel(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -31,7 +37,7 @@ class Ui_BookWindow(object):
         self.label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.label.setWordWrap(True)
         self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.label, 0, 0, 1, 2)
         BookWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(BookWindow)
         self.statusbar.setObjectName("statusbar")
@@ -58,6 +64,8 @@ class Ui_BookWindow(object):
 
     def retranslateUi(self, BookWindow):
         _translate = QtCore.QCoreApplication.translate
+        self.lastButton.setText(_translate("BookWindow", "<"))
+        self.nextButton.setText(_translate("BookWindow", ">"))
         self.menu.setTitle(_translate("BookWindow", "Формат текста"))
         self.action.setText(_translate("BookWindow", "Выбрать шрифт"))
         self.action_2.setText(_translate("BookWindow", "Сменить размер"))
