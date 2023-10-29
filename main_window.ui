@@ -186,19 +186,33 @@
       <item row="1" column="4">
        <widget class="QLineEdit" name="yearEdit"/>
       </item>
+      <item row="0" column="5">
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Поиск по тексту</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item row="1" column="0">
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="1">
-       <widget class="QTableView" name="tableView"/>
-      </item>
       <item row="0" column="0">
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <property name="sizeConstraint">
          <enum>QLayout::SetFixedSize</enum>
         </property>
        </layout>
+      </item>
+      <item row="0" column="1">
+       <widget class="QTableView" name="tableView"/>
+      </item>
+      <item row="0" column="2">
+       <widget class="QScrollBar" name="verticalScrollBar">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -287,6 +301,8 @@
     <property name="title">
      <string>Файл</string>
     </property>
+    <addaction name="actionNew_library"/>
+    <addaction name="separator"/>
     <addaction name="actionOpen"/>
     <addaction name="actionOpenLastLibraries"/>
     <addaction name="separator"/>
@@ -363,6 +379,11 @@
   <action name="actionDelete">
    <property name="text">
     <string>Удалить</string>
+   </property>
+  </action>
+  <action name="actionNew_library">
+   <property name="text">
+    <string>Новая библиотека</string>
    </property>
   </action>
  </widget>
