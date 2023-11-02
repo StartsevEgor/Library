@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>764</width>
+    <width>1027</width>
     <height>544</height>
    </rect>
   </property>
@@ -60,43 +60,6 @@
    <layout class="QGridLayout" name="gridLayout_3">
     <item row="0" column="0">
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="3">
-       <widget class="QLineEdit" name="titleEdit"/>
-      </item>
-      <item row="0" column="2">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <family>Times New Roman</family>
-            <pointsize>10</pointsize>
-            <strikeout>false</strikeout>
-            <kerning>true</kerning>
-           </font>
-          </property>
-          <property name="mouseTracking">
-           <bool>false</bool>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::DefaultContextMenu</enum>
-          </property>
-          <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
-          </property>
-          <property name="text">
-           <string>Автор</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
       <item row="0" column="4">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
@@ -119,6 +82,42 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item row="1" column="3">
+       <widget class="QLineEdit" name="titleEdit"/>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLineEdit" name="authorEdit"/>
+      </item>
+      <item row="1" column="6">
+       <widget class="QPushButton" name="searchButton">
+        <property name="text">
+         <string>Поиск</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Поиск по базе данных:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="6">
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Поиск по тексту</string>
+        </property>
+       </widget>
       </item>
       <item row="0" column="3">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -157,41 +156,62 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
-       <widget class="QLineEdit" name="authorEdit"/>
-      </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Поиск по базе данных:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="5">
-       <widget class="QPushButton" name="searchButton">
-        <property name="text">
-         <string>Поиск</string>
-        </property>
-       </widget>
+      <item row="0" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>Times New Roman</family>
+            <pointsize>10</pointsize>
+            <strikeout>false</strikeout>
+            <kerning>true</kerning>
+           </font>
+          </property>
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::DefaultContextMenu</enum>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>Автор</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item row="1" column="4">
        <widget class="QLineEdit" name="yearEdit"/>
       </item>
+      <item row="1" column="5">
+       <widget class="QLineEdit" name="genreEdit"/>
+      </item>
       <item row="0" column="5">
-       <widget class="QPushButton" name="pushButton">
-        <property name="text">
-         <string>Поиск по тексту</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Жанр</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
@@ -226,7 +246,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>764</width>
+     <width>1027</width>
      <height>25</height>
     </rect>
    </property>
@@ -302,6 +322,8 @@
      <string>Файл</string>
     </property>
     <addaction name="actionNew_library"/>
+    <addaction name="separator"/>
+    <addaction name="actionAdd_book"/>
     <addaction name="separator"/>
     <addaction name="actionOpen"/>
     <addaction name="actionOpenLastLibraries"/>
@@ -384,6 +406,11 @@
   <action name="actionNew_library">
    <property name="text">
     <string>Новая библиотека</string>
+   </property>
+  </action>
+  <action name="actionAdd_book">
+   <property name="text">
+    <string>Добавить книгу</string>
    </property>
   </action>
  </widget>
