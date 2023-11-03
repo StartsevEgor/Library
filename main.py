@@ -1,12 +1,15 @@
 import sys
 import os
 
-from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QInputDialog
+from PyQt5 import uic, QtWidgets
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QInputDialog, QTableWidgetItem, QAbstractItemView
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
 from main_window import Ui_MainWindow
 from book_window import Ui_BookWindow
 from choice_book_window import Ui_ChoiceBookWindow
 from library import Library
+from random import randint
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -31,16 +34,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionRename.triggered.connect(self.rename)
         self.actionDelete.triggered.connect(self.delete)
         self.actionAdd_book.triggered.connect(self.open_choice_book)
-        self.searchButton.clicked.connect(self.search)
+        self.searchButton.clicked.connect(self.make_table)
+        self.tableWidget.cellDoubleClicked.connect(self.search_if_item_is_clicked)
 
-    def add_book(self):
-        file = QFileDialog.getOpenFileName(self, "Выбрать книгу", "", "Книга (*.txt)")[0]
+    def make_table(self, author="", title="", year="", genre=""):
+        self.flag2 = True
+        if not self.yearEdit.text().isdigit() and self.yearEdit.text():
+            self.flag2 = False
+            self.statusbar.showMessage('Запишите число в поле "год"')
+        else:
+            self.tableWidget.setColumnCount(4)
+            self.tableWidget.setHorizontalHeaderLabels(["Автор", "Название", "Год написания", "Жанр"])
+            if not any([author, title, year, genre]):
+                data = self.search()
+            else:
+                data = self.lib.search(author, title, year, genre)
+            self.tableWidget.setRowCount(len(data))
+            for i, row in enumerate(data):
+                for j, elem in enumerate(row):
+                    self.tableWidget.setItem(i, j, QTableWidgetItem(elem))
+                self.color_row(i, QColor(randint(100, 220), randint(100, 220), randint(100, 220)))
+            self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+            self.tableWidget.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+            self.authorEdit.clear()
+            self.titleEdit.clear()
+            self.yearEdit.clear()
+            self.genreEdit.clear()
+
+    def search_if_item_is_clicked(self, row, col):
+        item = self.tableWidget.item(row, col)
+        if item.column() == 0:
+            self.make_table(item.text())
+        elif item.column() == 2:
+            self.make_table("", "", item.text())
+        elif item.column() == 3:
+            self.make_table("", "", "", item.text())
+        else:
+            print(-1)
+            self.book = BookText(self.lib.open_book(item.text()))
+            self.book.show()
 
     def search(self):
-        search_by_author = self.authorEdit.setText() if self.authorEdit.setText() else "*"
-        search_by_title = self.titleEdit.setText() if self.titleEdit.setText() else "*"
-        search_by_year = self.yearEdit.setText() if self.yearEdit.setText() else "*"
-        search_by_genre = self.genreEdit.setText() if self.genreEdit.setText() else "*"
+        search_by_author = self.authorEdit.text()
+        search_by_title = self.titleEdit.text()
+        search_by_year = self.yearEdit.text()
+        search_by_genre = self.genreEdit.text()
+        result = self.lib.search(search_by_author, search_by_title, search_by_year, search_by_genre)
+        return result
+
+    def color_row(self, row, color):
+        for i in range(self.tableWidget.columnCount()):
+            self.tableWidget.item(row, i).setBackground(color)
 
     def delete(self):
         os.remove(self.lib.name.strip())
@@ -112,10 +156,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.lib.open()
         self.setWindowTitle(f"Библиотека - {self.lib.name}")
 
-    def open_book(self):
-        self.book = BookText()
-        self.book.show()
-
     def open_choice_book(self):
         self.choice_book = ChoiceBook()
         self.choice_book.show()
@@ -123,16 +163,48 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.choice_book.cancelButton.clicked.connect(self.choice_book.close)
 
     def set_data(self):
-        self.flag, self.author, self.title, self.year, self.text, self.picture = self.choice_book.initUI()
-        print(self.author, self.title, self.year, self.text, self.picture)
+        self.flag, self.author, self.title, self.year, self.genre, self.text, self.picture = self.choice_book.initUI()
         if self.flag:
             self.choice_book.close()
+            self.lib.add_book(self.author, self.title, self.year, self.genre, self.text, self.picture)
 
 
 class BookText(QMainWindow, Ui_BookWindow):
-    def __init__(self):
+    def __init__(self, text_and_picture):
         super().__init__()
         uic.loadUi('book_window.ui', self)
+        print(0)
+        self.file_with_text, self.file_with_picture = text_and_picture
+        self.page = 0
+        print(1)
+        self.initUI()
+        print(2)
+        self.picture_flag = False
+        self.show_text()
+        print(3)
+
+    def initUI(self):
+        with open(self.file_with_text, "r", encoding="utf-8") as text:
+            self.text = text.read()
+        print(-2, self.text)
+        print(self.file_with_picture.split("/")[-1])
+        if self.file_with_picture.split("/")[-1]:
+            with open(self.file_with_picture, "rb") as picture:
+                self.picture = picture.read()
+                self.picture_flag = True
+        else:
+            self.picture_flag = False
+        print(-3)
+        self.elided_text = []
+        while self.text:
+            elided_text = self.label.fontMetrics().elidedText(self.text, Qt.ElideNone, self.label.width())
+            print(-4, elided_text)
+            self.elided_text.append(elided_text)
+            self.text = self.text[len(elided_text):]
+
+    def show_text(self):
+        self.label.setText(self.elided_text[self.page])
+
 
 
 class ChoiceBook(QMainWindow, Ui_ChoiceBookWindow):
@@ -159,17 +231,28 @@ class ChoiceBook(QMainWindow, Ui_ChoiceBookWindow):
         author = self.authorEdit.text()
         title = self.titleEdit.text()
         year = self.yearEdit.text()
+        genre = self.genreEdit.text()
         self.text = self.textEdit.text()
+        print(self.text)
         self.picture = self.pictureEdit.text()
-        if not all([author, title, year, self.text]):
+        if not all([author, title, year, genre, self.text]):
             flag = False
             self.statusbar.showMessage("Необходимо заполнить все обязательные поля")
         elif not os.path.isfile(self.text):
             flag = False
-            self.statusbar.showMessage("Введите правильное название файла")
+            self.statusbar.showMessage("Введите правильное название файла с текстом")
+        elif self.text.split(".")[-1] != "txt":
+            flag = False
+            self.statusbar.showMessage("Выберите текстовый файл с расширением .txt")
+        elif not os.path.isfile(self.picture) and self.picture != "":
+            flag = False
+            self.statusbar.showMessage("Введите правильное название файла с обложкой")
+        elif self.picture != "" and self.picture.split(".")[-1] not in ["png", "jpg", "jpeg", "bmp"]:
+            flag = False
+            self.statusbar.showMessage("Выберите файл с обложкой с расширением .png, .jpg, .jpeg или .bmp")
         else:
             flag = True
-        return flag, author, title, year, self.text, self.picture
+        return flag, author, title, year, genre, self.text, self.picture
 
 
 if __name__ == '__main__':

@@ -222,17 +222,10 @@
         <property name="sizeConstraint">
          <enum>QLayout::SetFixedSize</enum>
         </property>
+        <item>
+         <widget class="QTableWidget" name="tableWidget"/>
+        </item>
        </layout>
-      </item>
-      <item row="0" column="1">
-       <widget class="QTableView" name="tableView"/>
-      </item>
-      <item row="0" column="2">
-       <widget class="QScrollBar" name="verticalScrollBar">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
       </item>
      </layout>
     </item>
