@@ -17,6 +17,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('main_window.ui', self)
+        if not os.path.isdir("Libraries"):
+            os.mkdir("Libraries")
         self.initUI()
 
     def initUI(self):
