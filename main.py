@@ -1,10 +1,11 @@
 import sys
 import os
+import textwrap
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QInputDialog, QTableWidgetItem, QAbstractItemView
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QInputDialog, QTableWidgetItem, QColorDialog
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QTextCursor
 from main_window import Ui_MainWindow
 from book_window import Ui_BookWindow
 from choice_book_window import Ui_ChoiceBookWindow
@@ -25,6 +26,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.lib = Library(flag_new_file=False)
             self.lib.open()
+        self.text_font = "MS Shell Dlg 2"
         self.setWindowTitle(f"Библиотека - {self.lib.name}")
         self.actionNew_library.triggered.connect(self.new_library)
         self.actionOpen.triggered.connect(self.open_library)
@@ -36,6 +38,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionAdd_book.triggered.connect(self.open_choice_book)
         self.searchButton.clicked.connect(self.make_table)
         self.tableWidget.cellDoubleClicked.connect(self.search_if_item_is_clicked)
+        # self.actionChoose_a_font.triggered.connect()
 
     def make_table(self, author="", title="", year="", genre=""):
         self.flag2 = True
@@ -73,6 +76,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(-1)
             self.book = BookText(self.lib.open_book(item.text()))
             self.book.show()
+            print(20)
 
     def search(self):
         search_by_author = self.authorEdit.text()
@@ -173,38 +177,61 @@ class BookText(QMainWindow, Ui_BookWindow):
     def __init__(self, text_and_picture):
         super().__init__()
         uic.loadUi('book_window.ui', self)
-        print(0)
+        self.setFixedSize(600, 800)
         self.file_with_text, self.file_with_picture = text_and_picture
-        self.page = 0
-        print(1)
+        self.picture_flag = True if self.file_with_picture.split("/")[-1] else False
+
+        self.textEdit.setReadOnly(True)
+        self.textEdit.setFocusPolicy(Qt.NoFocus)
+        self.textEdit.installEventFilter(self)
+
+        with open(self.file_with_text, 'r', encoding="utf-8") as file:
+            self.text = file.read()
+
         self.initUI()
-        print(2)
-        self.picture_flag = False
-        self.show_text()
-        print(3)
+        self.Choice_font_action.triggered.connect(self.choice_font)
+        self.Choice_size_action.triggered.connect(self.choice_size)
+        self.Choice_text_color_action.triggered.connect(self.choice_color)
 
     def initUI(self):
-        with open(self.file_with_text, "r", encoding="utf-8") as text:
-            self.text = text.read()
-        print(-2, self.text)
-        print(self.file_with_picture.split("/")[-1])
-        if self.file_with_picture.split("/")[-1]:
-            with open(self.file_with_picture, "rb") as picture:
-                self.picture = picture.read()
-                self.picture_flag = True
-        else:
-            self.picture_flag = False
-        print(-3)
-        self.elided_text = []
-        while self.text:
-            elided_text = self.label.fontMetrics().elidedText(self.text, Qt.ElideNone, self.label.width())
-            print(-4, elided_text)
-            self.elided_text.append(elided_text)
-            self.text = self.text[len(elided_text):]
+        print(-1)
+        self.textEdit.setText(self.text)
 
-    def show_text(self):
-        self.label.setText(self.elided_text[self.page])
+    def eventFilter(self, obj, event):
+        print(0)
+        if event.type() == event.KeyPress:
+            if event.key() == Qt.Key_Down:
+                pass
+                return True
+            elif event.key() == Qt.Key_Up:
+                pass
+                return True
+        print(0.5)
+        return False
 
+    def choice_font(self):
+        font, ok_pressed = QInputDialog.getItem(self, "Выбор шрифта", "Выберите шрифт", ("MS Shell Dlg 2",
+            "Arial Narrow", "Century Gothic", "Garamond", "Lucida Sans", "Palatino Linotype", "Segoe UI",
+            "Franklin Gothic Medium", "Book Antiqua", "Cambria", "Rockwell", "Trebuchet MS", "Impact", "Comic Sans MS",
+            "Georgia", "Tahoma", "Calibri", "Times New Roman", "Courier New", "Verdana", "Candara"), 0, True)
+        if ok_pressed:
+            print(self.textEdit.font().family())
+            self.textEdit.setFontFamily(font)
+            self.initUI()
+
+    def choice_size(self):
+        size, ok_pressed = QInputDialog.getDouble(
+            self, "Введите возраст", "Сколько тебе лет?",
+            self.textEdit.font().pointSize(), 1, 60, 1)
+        if ok_pressed:
+            self.textEdit.setFontPointSize(size)
+            self.initUI()
+
+    def choice_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.textEdit.setTextColor(color)
+            self.initUI()
 
 
 class ChoiceBook(QMainWindow, Ui_ChoiceBookWindow):
@@ -241,6 +268,9 @@ class ChoiceBook(QMainWindow, Ui_ChoiceBookWindow):
         elif not os.path.isfile(self.text):
             flag = False
             self.statusbar.showMessage("Введите правильное название файла с текстом")
+        elif not year.isdigit():
+            flag = False
+            self.statusbar.showMessage('Введите число в поле "год"')
         elif self.text.split(".")[-1] != "txt":
             flag = False
             self.statusbar.showMessage("Выберите текстовый файл с расширением .txt")

@@ -95,7 +95,7 @@ class Library:
 
     def open(self):  # Распаковка библиотеки в отдельную папку
         if self.name is None:
-            with open("last_libraries.txt", "r") as f:
+            with open("last_libraries.txt", "r", encoding="utf-8") as f:
                 self.name = f.readlines()[-1].strip()
         shutil.rmtree("Last library")
         os.mkdir("Last library")
@@ -114,10 +114,8 @@ class Library:
             if file:
                 archive.write("Last library/Pictures/" + file, "Pictures/" + file)
         for file in os.listdir("Last library/Texts"):
-            print(0, file)
             if file:
                 archive.write("Last library/Texts/" + file, "Texts/" + file)
-                print(1, os.listdir("Last library/Texts"))
         archive.close()
         with open("last_libraries.txt", "r") as f:
             file = f.readlines()

@@ -194,7 +194,7 @@ class Ui_ChoiceBookWindow(object):
         self.textButton.setText(_translate("ChoiceBookWindow", "Файл"))
         self.label_5.setText(_translate("ChoiceBookWindow", "Файл с обложкой"))
         self.pictureButton.setText(_translate("ChoiceBookWindow", "Файл"))
-        self.label_7.setText(_translate("ChoiceBookWindow", "Жанр"))
+        self.label_7.setText(_translate("ChoiceBookWindow", "Жанр*"))
         self.label_6.setText(_translate("ChoiceBookWindow", "* Поле, обязательное для заполнения"))
         self.add_bookButton.setText(_translate("ChoiceBookWindow", "Добавить книгу"))
         self.cancelButton.setText(_translate("ChoiceBookWindow", "Отмена"))
