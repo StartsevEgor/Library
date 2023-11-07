@@ -340,6 +340,7 @@
     <addaction name="actionChoose_a_font"/>
     <addaction name="actionChange_size"/>
     <addaction name="actionText_color"/>
+    <addaction name="actionBackground_color"/>
    </widget>
    <addaction name="File"/>
    <addaction name="Main"/>
@@ -404,6 +405,11 @@
   <action name="actionAdd_book">
    <property name="text">
     <string>Добавить книгу</string>
+   </property>
+  </action>
+  <action name="actionBackground_color">
+   <property name="text">
+    <string>Цвет фона</string>
    </property>
   </action>
  </widget>

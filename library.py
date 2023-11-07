@@ -109,7 +109,6 @@ class Library:
         archive.write("Last library/database.sqlite", "database.sqlite")
         archive.write("Last library/Pictures", "Pictures")
         archive.write("Last library/Texts", "Texts")
-        print(os.listdir("Last library/Pictures"), os.listdir("Last library/Texts"))
         for file in os.listdir("Last library/Pictures"):
             if file:
                 archive.write("Last library/Pictures/" + file, "Pictures/" + file)

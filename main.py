@@ -3,9 +3,10 @@ import os
 import textwrap
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QInputDialog, QTableWidgetItem, QColorDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QInputDialog, QTableWidgetItem, QColorDialog, \
+    QTextEdit, QVBoxLayout
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QTextCursor
+from PyQt5.QtGui import QColor, QPixmap
 from main_window import Ui_MainWindow
 from book_window import Ui_BookWindow
 from choice_book_window import Ui_ChoiceBookWindow
@@ -22,13 +23,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initUI()
 
     def initUI(self):
+        if not os.path.isfile("settings.txt"):
+            self.save_settings("MS Shell Dlg 2", "10", "#000000", "#ffffff")
+        else:
+            self.apply_settings()
         if not os.path.isdir("Last library"):
             self.lib = Library()
             self.lib.make()
         else:
             self.lib = Library(flag_new_file=False)
             self.lib.open()
-        self.text_font = "MS Shell Dlg 2"
         self.setWindowTitle(f"Библиотека - {self.lib.name}")
         self.actionNew_library.triggered.connect(self.new_library)
         self.actionOpen.triggered.connect(self.open_library)
@@ -40,7 +44,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionAdd_book.triggered.connect(self.open_choice_book)
         self.searchButton.clicked.connect(self.make_table)
         self.tableWidget.cellDoubleClicked.connect(self.search_if_item_is_clicked)
-        # self.actionChoose_a_font.triggered.connect()
+        self.actionChoose_a_font.triggered.connect(self.change_text_font)
+        self.actionChange_size.triggered.connect(self.change_text_size)
+        self.actionText_color.triggered.connect(self.change_text_color)
+        self.actionBackground_color.triggered.connect(self.change_background_color)
+
+    def change_text_font(self):
+        fonts = ("MS Shell Dlg 2", "Arial Narrow", "Century Gothic", "Garamond", "Lucida Sans", "Palatino Linotype",
+                 "Segoe UI", "Franklin Gothic Medium", "Book Antiqua", "Cambria", "Rockwell", "Trebuchet MS", "Impact",
+                 "Comic Sans MS", "Georgia", "Tahoma", "Calibri", "Times New Roman", "Courier New", "Verdana",
+                 "Candara")
+        font, ok_pressed = QInputDialog.getItem(self, "Выбор шрифта", "Выберите шрифт", fonts,
+                                                fonts.index(self.text_font), True)
+        if ok_pressed:
+            self.text_font = font
+            self.save_settings(self.text_font, self.text_size, self.text_color, self.background_color)
+
+    def change_text_size(self):
+        print(1)
+        size, ok_pressed = QInputDialog.getInt(self, "Введите размер", "Какой размер шрифта установить?",
+                                               int(self.text_size), 1, 60, 1)
+        print(2)
+        if ok_pressed:
+            self.text_size = str(size)
+            self.save_settings(self.text_font, self.text_size, self.text_color, self.background_color)
+
+    def change_text_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.text_color = color.name()
+            self.save_settings(self.text_font, self.text_size, self.text_color, self.background_color)
+
+    def change_background_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.background_color = color.name()
+            self.save_settings(self.text_font, self.text_size, self.text_color, self.background_color)
+
+    def save_settings(self, font, size, text_color, background_color):
+        print(1, [font, size, text_color, background_color])
+        if os.path.isfile("settings.txt"):
+            os.remove("settings.txt")
+        with open("settings.txt", "w") as settings:
+            settings.writelines([font + "\n", size + "\n", text_color + "\n", background_color + "\n"])
+        self.text_font, self.text_size, self.text_color, self.background_color = [font, size, text_color,
+                                                                                  background_color]
+
+    def apply_settings(self):
+        with open("settings.txt", "r") as settings:
+            setting_list = list(map(lambda x: x.strip(), settings.readlines()))
+            print(5, setting_list)
+            self.text_font, self.text_size, self.text_color, self.background_color = setting_list
 
     def make_table(self, author="", title="", year="", genre=""):
         self.flag2 = True
@@ -75,10 +129,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif item.column() == 3:
             self.make_table("", "", "", item.text())
         else:
-            print(-1)
-            self.book = BookText(self.lib.open_book(item.text()))
+            self.apply_settings()
+            self.book = BookText(self.lib.open_book(item.text()),
+                                 [self.text_font, self.text_size, self.text_color, self.background_color])
+            print(3, [self.text_font, self.text_size, self.text_color, self.background_color])
             self.book.show()
-            print(20)
 
     def search(self):
         search_by_author = self.authorEdit.text()
@@ -176,12 +231,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 class BookText(QMainWindow, Ui_BookWindow):
-    def __init__(self, text_and_picture):
+    def __init__(self, text_and_picture, font):
         super().__init__()
         uic.loadUi('book_window.ui', self)
         self.setFixedSize(600, 800)
         self.file_with_text, self.file_with_picture = text_and_picture
         self.picture_flag = True if self.file_with_picture.split("/")[-1] else False
+        self.text_font, self.text_size, self.text_color, self.background_color = font
+        if self.picture_flag:
+            self.initPicture()
+        else:
+            print(3)
+            self.label.deleteLater()
+            self.initTextEdit()
+
+    def initPicture(self):
+        pixmap = QPixmap(self.file_with_picture)
+        self.label.setPixmap(pixmap)
+
+    def initTextEdit(self):
+        self.centralwidget = QtWidgets.QWidget(self)
+        self.centralwidget.setObjectName("centralwidget")
+        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName("gridLayout")
+        self.textEdit = QtWidgets.QTextEdit(self.centralwidget)
+        self.textEdit.setObjectName("textEdit")
+        self.gridLayout.addWidget(self.textEdit, 0, 0, 1, 1)
+        self.setCentralWidget(self.centralwidget)
 
         self.textEdit.setReadOnly(True)
         self.textEdit.setFocusPolicy(Qt.NoFocus)
@@ -189,51 +265,93 @@ class BookText(QMainWindow, Ui_BookWindow):
 
         with open(self.file_with_text, 'r', encoding="utf-8") as file:
             self.text = file.read()
-
-        self.initUI()
+        self.textEdit.setAutoFillBackground(True)
+        self.choice_font(self.text_font)
+        self.choice_size(self.text_size)
+        self.choice_text_color(self.text_color)
+        self.choice_background_color(self.background_color)
         self.Choice_font_action.triggered.connect(self.choice_font)
         self.Choice_size_action.triggered.connect(self.choice_size)
-        self.Choice_text_color_action.triggered.connect(self.choice_color)
+        self.Choice_text_color_action.triggered.connect(self.choice_text_color)
+        self.Choice_background_color_action.triggered.connect(self.choice_background_color)
+        self.initText()
 
-    def initUI(self):
-        print(-1)
+    def initText(self):
         self.textEdit.setText(self.text)
 
-    def eventFilter(self, obj, event):
-        print(0)
-        if event.type() == event.KeyPress:
-            if event.key() == Qt.Key_Down:
-                pass
-                return True
-            elif event.key() == Qt.Key_Up:
-                pass
-                return True
-        print(0.5)
-        return False
+    def keyPressEvent(self, event):
+        print(2)
+        if self.picture_flag:
+            self.picture_flag = False
+            self.label.deleteLater()
+            self.initTextEdit()
 
-    def choice_font(self):
-        font, ok_pressed = QInputDialog.getItem(self, "Выбор шрифта", "Выберите шрифт", ("MS Shell Dlg 2",
-            "Arial Narrow", "Century Gothic", "Garamond", "Lucida Sans", "Palatino Linotype", "Segoe UI",
-            "Franklin Gothic Medium", "Book Antiqua", "Cambria", "Rockwell", "Trebuchet MS", "Impact", "Comic Sans MS",
-            "Georgia", "Tahoma", "Calibri", "Times New Roman", "Courier New", "Verdana", "Candara"), 0, True)
-        if ok_pressed:
-            print(self.textEdit.font().family())
-            self.textEdit.setFontFamily(font)
-            self.initUI()
+    def choice_font(self, font=None):
+        print(4)
+        if font:
+            self.textEdit.setFontFamily(font.strip())
+            self.initText()
+        else:
+            fonts = ("MS Shell Dlg 2", "Arial Narrow", "Century Gothic", "Garamond", "Lucida Sans", "Palatino Linotype",
+                     "Segoe UI", "Franklin Gothic Medium", "Book Antiqua", "Cambria", "Rockwell", "Trebuchet MS",
+                     "Impact",
+                     "Comic Sans MS", "Georgia", "Tahoma", "Calibri", "Times New Roman", "Courier New", "Verdana",
+                     "Candara")
+            font, ok_pressed = QInputDialog.getItem(self, "Выбор шрифта", "Выберите шрифт", fonts,
+                                                    fonts.index(self.text_font), True)
+            if ok_pressed:
+                self.textEdit.setFontFamily(font)
+                self.initText()
+                self.text_font = font
 
-    def choice_size(self):
-        size, ok_pressed = QInputDialog.getDouble(
-            self, "Введите возраст", "Сколько тебе лет?",
-            self.textEdit.font().pointSize(), 1, 60, 1)
-        if ok_pressed:
-            self.textEdit.setFontPointSize(size)
-            self.initUI()
+    def choice_size(self, size=None):
+        print(5)
+        if size:
+            self.textEdit.setFontPointSize(int(size.strip()))
+            self.initText()
+        else:
+            print(10)
+            size, ok_pressed = QInputDialog.getInt(self, "Введите размер", "Какой размер шрифта установить?",
+                                                   int(self.text_size), 1, 60, 1)
+            if ok_pressed:
+                print(11)
+                self.textEdit.setFontPointSize(size)
+                self.initText()
+                self.text_size = str(size)
+                print(12)
 
-    def choice_color(self):
-        color = QColorDialog.getColor()
-        if color.isValid():
-            self.textEdit.setTextColor(color)
-            self.initUI()
+    def choice_text_color(self, color=None):
+        print(6)
+        if color:
+            self.textEdit.setTextColor(QColor(color.strip()))
+            self.initText()
+        else:
+            color = QColorDialog.getColor()
+            if color.isValid():
+                print(1)
+                self.textEdit.setTextColor(color)
+                self.initText()
+                self.text_color = color.name()
+
+    def choice_background_color(self, color=None):
+        print(7)
+        if color:
+            self.textEdit.setStyleSheet(f"background-color: {color.strip()};")
+            self.initText()
+        else:
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.textEdit.setStyleSheet(f"background-color: {color.name()};")
+                self.initText()
+                self.background_color = color.name()
+
+    def closeEvent(self, event):
+        if os.path.isfile("settings.txt"):
+            os.remove("settings.txt")
+        with open("settings.txt", "w") as settings:
+            settings.writelines(
+                [self.text_font + "\n", self.text_size + "\n", self.text_color + "\n", self.background_color + "\n"])
+        event.accept()
 
 
 class ChoiceBook(QMainWindow, Ui_ChoiceBookWindow):
@@ -262,7 +380,6 @@ class ChoiceBook(QMainWindow, Ui_ChoiceBookWindow):
         year = self.yearEdit.text()
         genre = self.genreEdit.text()
         self.text = self.textEdit.text()
-        print(self.text)
         self.picture = self.pictureEdit.text()
         if not all([author, title, year, genre, self.text]):
             flag = False
