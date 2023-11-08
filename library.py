@@ -2,9 +2,10 @@ import os
 import shutil
 import sqlite3
 
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZipFile
 
 
+# Функция создаёт пустую базу данных
 def make_database():
     con = sqlite3.connect("Last library/database.sqlite")
     cur = con.cursor()
@@ -23,6 +24,7 @@ def make_database():
                 """)
 
 
+# Класс, описывающий библиотеку и действия с ней и с её книгами
 class Library:
     def __init__(self, name=None, flag_new_file=True):
         self.name = name
@@ -35,12 +37,14 @@ class Library:
                 self.name = "Libraries/Library_" + str(
                     max(list(map(lambda x: int(x[:-4].split("_")[1]) + 1, names)))) + ".lib"
 
+    # Поиск файлов с текстом и с обложкой книги
     def open_book(self, title):
         con = sqlite3.connect("Last library/database.sqlite")
         cur = con.cursor()
         result = cur.execute(f'SELECT text, picture FROM books WHERE title = "{title}"').fetchall()[0]
-        return ["Last library/Texts/" + result[0], "Last library/Pictures/" + result[1]]
+        return [result[0], result[1]]
 
+    # Поиск книг по фильтрам
     def search(self, author="", title="", year="", genre=""):
         con = sqlite3.connect("Last library/database.sqlite")
         cur = con.cursor()
@@ -50,8 +54,7 @@ class Library:
                 AND year IN (SELECT ID FROM list_years WHERE year LIKE "%{year}%")
                 AND genre IN (SELECT ID FROM list_genres WHERE genre LIKE "%{genre}%")""").fetchall()))
         result = list(map(lambda x: [cur.execute(f'SELECT author FROM list_authors WHERE ID = '
-                                                 f'(SELECT author FROM books WHERE title = "{x}")').fetchall()[0][0],
-                                     x,
+                                                 f'(SELECT author FROM books WHERE title = "{x}")').fetchall()[0][0], x,
                                      cur.execute(f'SELECT year FROM list_years WHERE ID = '
                                                  f'(SELECT year FROM books WHERE title = "{x}")').fetchall()[0][0],
                                      cur.execute(f'SELECT genre FROM list_genres WHERE ID = '
@@ -60,6 +63,7 @@ class Library:
         result.sort(key=lambda x: x[1])
         return result
 
+    # Добавление информации о книге в базу данных, копирование её файлов во внутренние папки библиотеки
     def add_book(self, author, title, year, genre, text, picture):
         con = sqlite3.connect("Last library/database.sqlite")
         cur = con.cursor()
@@ -74,8 +78,8 @@ class Library:
                 "{title}",
                 (SELECT ID FROM list_years WHERE year = "{year}"),
                 (SELECT ID FROM list_genres WHERE genre = "{genre}"),
-                "{text.split('/')[-1]}",
-                "{picture.split('/')[-1]}")""")
+                "Last library/Texts/{text.split('/')[-1]}",
+                "Last library/Pictures/{picture.split('/')[-1]}")""")
         con.commit()
         if text != f"Last library/Texts/{text.split('/')[-1]}":
             shutil.copyfile(text, f"Last library/Texts/{text.split('/')[-1]}")
@@ -83,7 +87,21 @@ class Library:
             shutil.copyfile(picture, f"Last library/Pictures/{picture.split('/')[-1]}")
         self.save()
 
-    def make(self):  # Создание пустой библиотеки
+    # Удаление книги
+    def remove_book(self, title):
+        con = sqlite3.connect("Last library/database.sqlite")
+        cur = con.cursor()
+        text = cur.execute(f"SELECT text FROM books WHERE title = '{title}'").fetchall()[0][0]
+        picture = cur.execute(f"SELECT picture FROM books WHERE title = '{title}'").fetchall()[0][0]
+        os.remove(text)
+        if picture.split("/")[-1]:
+            os.remove(picture)
+        cur.execute(f"DELETE FROM books WHERE title = '{title}'")
+        con.commit()
+        self.save()
+
+    # Создание пустой библиотеки
+    def make(self):
         if os.path.isdir("Last library"):
             shutil.rmtree("Last library")
         os.mkdir("Last library")
@@ -93,9 +111,11 @@ class Library:
         os.mkdir("Last library/Pictures")
         self.save()
 
-    def open(self):  # Распаковка библиотеки в отдельную папку
+    # Распаковка библиотеки в отдельную папку
+    def open(self):
         if self.name is None:
-            with open("last_libraries.txt", "r", encoding="utf-8") as f:
+            print(self.name)
+            with open("last_libraries.txt", "r") as f:
                 self.name = f.readlines()[-1].strip()
         shutil.rmtree("Last library")
         os.mkdir("Last library")
@@ -103,6 +123,7 @@ class Library:
             archive.extractall(path="Last library")
         self.save()
 
+    # Сохранение библиотеки
     def save(self):
         self.name += "\n" if "\n" not in self.name else ""
         archive = ZipFile(self.name.strip(), mode="w")
