@@ -48,20 +48,28 @@ class Library:
     def search(self, author="", title="", year="", genre=""):
         con = sqlite3.connect("Last library/database.sqlite")
         cur = con.cursor()
-        result = list(map(lambda x: "".join(list(x)), cur.execute(f"""SELECT title FROM books WHERE
-                author IN (SELECT ID FROM list_authors WHERE author LIKE "%{author}%")
-                AND title IN (SELECT title FROM books WHERE title LIKE "%{title}%")
-                AND year IN (SELECT ID FROM list_years WHERE year LIKE "%{year}%")
-                AND genre IN (SELECT ID FROM list_genres WHERE genre LIKE "%{genre}%")""").fetchall()))
-        result = list(map(lambda x: [cur.execute(f'SELECT author FROM list_authors WHERE ID = '
-                                                 f'(SELECT author FROM books WHERE title = "{x}")').fetchall()[0][0], x,
-                                     cur.execute(f'SELECT year FROM list_years WHERE ID = '
-                                                 f'(SELECT year FROM books WHERE title = "{x}")').fetchall()[0][0],
-                                     cur.execute(f'SELECT genre FROM list_genres WHERE ID = '
-                                                 f'(SELECT genre FROM books WHERE title = "{x}")').fetchall()[0][0]],
-                          result))
-        result.sort(key=lambda x: x[1])
-        return result
+        all_results = []
+        for i in range(3):
+            if i == 1:
+                author, title, genre = list(map(lambda x: x.capitalize(), [author, title, genre]))
+            elif i == 2:
+                author, title, genre = list(map(lambda x: x.upper(), [author, title, genre]))
+            result = list(map(lambda x: "".join(list(x)), cur.execute(f"""SELECT title FROM books WHERE
+                    author IN (SELECT ID FROM list_authors WHERE author LIKE "%{author}%")
+                    AND title IN (SELECT title FROM books WHERE title LIKE "%{title}%")
+                    AND year IN (SELECT ID FROM list_years WHERE year LIKE "%{year}%")
+                    AND genre IN (SELECT ID FROM list_genres WHERE genre LIKE "%{genre}%")""").fetchall()))
+            for x in result:
+                data = [cur.execute(f'SELECT author FROM list_authors WHERE ID = '
+                                    f'(SELECT author FROM books WHERE title = "{x}")').fetchall()[0][0], x,
+                        cur.execute(f'SELECT year FROM list_years WHERE ID = '
+                                    f'(SELECT year FROM books WHERE title = "{x}")').fetchall()[0][0],
+                        cur.execute(f'SELECT genre FROM list_genres WHERE ID = '
+                                    f'(SELECT genre FROM books WHERE title = "{x}")').fetchall()[0][0]]
+                if data not in all_results:
+                    all_results.append(data)
+        all_results.sort(key=lambda x: x[1])
+        return all_results
 
     # Добавление информации о книге в базу данных, копирование её файлов во внутренние папки библиотеки
     def add_book(self, author, title, year, genre, text, picture):
@@ -114,7 +122,6 @@ class Library:
     # Распаковка библиотеки в отдельную папку
     def open(self):
         if self.name is None:
-            print(self.name)
             with open("last_libraries.txt", "r") as f:
                 self.name = f.readlines()[-1].strip()
         shutil.rmtree("Last library")

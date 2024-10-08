@@ -1,1 +1,2 @@
+C:/Users/start/Downloads/לנרהור.lib
 Libraries/Library_1.lib
